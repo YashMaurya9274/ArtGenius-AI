@@ -14,6 +14,8 @@ import '../../flow/config';
 import { useState, useEffect } from 'react';
 // @ts-ignore
 import * as fcl from '@onflow/fcl/dist/fcl-react-native';
+import retrieveTheme from '../lib/retrieveTheme';
+import storeTheme from '../lib/storeTheme';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -25,17 +27,31 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 const RootNavigator = () => {
   const scheme = useColorScheme();
   const [user, setUser] = useState({ loggedIn: null });
+  const [theme, setTheme] = useState<string>('');
+
+  const fetchTheme = async () => {
+    const themeFromStorage = await retrieveTheme();
+    if (themeFromStorage) {
+      setTheme(themeFromStorage);
+    } else {
+      // @ts-ignore
+      await storeTheme(scheme);
+    }
+  };
+
+  useEffect(() => {
+    fetchTheme();
+  }, []);
 
   useEffect(() => fcl.currentUser.subscribe(setUser), []);
 
   const globalScreenOptions: NativeStackNavigationOptions = {
     headerStyle: {
-      backgroundColor: scheme === 'dark' ? DARK_COLORS.BACKGROUND : 'white',
+      backgroundColor: theme === 'dark' ? DARK_COLORS.BACKGROUND : 'white',
     },
-    headerTitleStyle: { color: scheme === 'dark' ? 'white' : 'black' },
-    headerTintColor: scheme === 'dark' ? 'white' : 'black',
+    headerTitleStyle: { color: theme === 'dark' ? 'white' : 'black' },
+    headerTintColor: theme === 'dark' ? 'white' : 'black',
     headerShadowVisible: false,
-    // animationEnabled: false,
   };
 
   return (

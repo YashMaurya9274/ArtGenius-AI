@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const GradientText = (props: any) => {
   return (
+    // @ts-ignore
     <MaskedView maskElement={<Text {...props} />}>
       <LinearGradient
         colors={['#579CFF', '#E157FF', '#FF8557']}

@@ -1,5 +1,5 @@
-import {StyleSheet} from 'react-native';
-import {COLORCODE} from '../../enums';
+import { StyleSheet } from 'react-native';
+import { COLORCODE } from '../../enums';
 
 const styles = StyleSheet.create({
   gradientAppName: {
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
     textAlign: 'center',
     fontSize: 18,
-    color: COLORCODE.primary,
+    color: COLORCODE.PRIMARY,
     fontWeight: '500',
   },
   homeButton: {
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   homeButtonIcon: {
     height: 25,
     width: 25,
-    tintColor: '#579CFF',
+    tintColor: COLORCODE.PRIMARY,
   },
   homeLogo: {
     height: 120,
@@ -105,9 +105,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    marginLeft: 10,
   },
   homeBottomSheetIcon: {
-    backgroundColor: COLORCODE.primary,
+    backgroundColor: COLORCODE.PRIMARY,
     padding: 8,
     borderRadius: 100,
   },
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   },
   homeBottomSheetText: {
     fontSize: 17,
-    color: COLORCODE.primary,
+    color: COLORCODE.PRIMARY,
   },
   mintOverlayContainer: {
     padding: 10,
