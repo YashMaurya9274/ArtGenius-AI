@@ -22,6 +22,13 @@ import CustomSnackBar from '../../components/CustomSnackBar/CustomSnackBar';
 // @ts-ignore
 import AnimatedLoader from 'react-native-animated-loader';
 
+// @ts-ignore
+import { OPENAI_API_KEY } from '@env';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { mintNFT } from '../../../flow/cadence/transactions/mint_nfts';
+import getTotalSupply from '../../../flow/cadence/scripts/getTotalSupply';
+import { ThirdwebStorage } from '@thirdweb-dev/storage';
+
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
@@ -36,10 +43,10 @@ const HomeScreen = () => {
   const [imageDecsription, setImageDescription] = useState('');
   const [creationLoading, setCreationLoading] = useState<boolean>(false);
   const [imageLoading, setImageLoading] = useState<boolean>(false);
+  const user = useCurrentUser();
 
   const configuration = new Configuration({
-    // apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-    apiKey: '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',
+    apiKey: OPENAI_API_KEY,
   });
 
   const openai = new OpenAIApi(configuration);
@@ -151,7 +158,6 @@ const HomeScreen = () => {
   const generateImage = async () => {
     if (!imageDecsription) return;
     setImage('');
-    console.log('Creating Image');
     setCreationLoading(true);
     try {
       const response = await openai.createImage({
@@ -166,16 +172,29 @@ const HomeScreen = () => {
         setImage(image_url);
         setOpenMintOverlay(true);
       }
-      // setDisabled(false);
-      // setForged(null);
-      // return image_url;
       setCreationLoading(false);
     } catch (e) {
       console.log('ERROR IMAGE GENERATION', e);
     }
   };
 
-  console.log('IMAGE FROM OPENAI', image);
+  //   const uploadImageToThirdWeb = () => {
+  //     console.log(e);
+  //       setLoading(2);
+  //       const storage = new ThirdwebStorage();
+  //       const url = await storage.upload(e);
+  //       console.log(url);
+  //       setLoading(0);
+  //       setUrl(url)
+  //       return url;
+  //   }
+
+  //   const handleSendTransaction = async () => {
+  //     if (user?.address) {
+  //       const metadata = await uploading(image);
+  //       mint(metadata)
+  //     }
+  // };
 
   return (
     <SafeAreaView
@@ -225,14 +244,12 @@ const HomeScreen = () => {
           contentStyle={{
             color: theme === 'dark' ? DARK_COLORS.LOGIN_TEXT : LIGHT_COLORS.LOGIN_TEXT,
           }}
-          style={{
-            margin: 20,
-            marginTop: 0,
-            fontSize: 15,
-            height: 100,
-            maxHeight: 150,
-            backgroundColor: theme === 'dark' ? DARK_COLORS.BACKGROUND : LIGHT_COLORS.BACKGROUND,
-          }}
+          style={[
+            styles.homeTextInput,
+            {
+              backgroundColor: theme === 'dark' ? DARK_COLORS.BACKGROUND : LIGHT_COLORS.BACKGROUND,
+            },
+          ]}
           theme={{
             colors: {
               primary: COLORCODE.PRIMARY,
@@ -293,6 +310,7 @@ const HomeScreen = () => {
           />
         </View>
       </ScrollView>
+
       {/* Gallery or Camera selection bottom sheet */}
       {/* <Overlay
         isVisible={openUploadOptionsOverlay}
@@ -331,6 +349,7 @@ const HomeScreen = () => {
           <Image source={ImageLinks.gallery} style={{height: 40, width: 40}} />
         </TouchableOpacity>
       </Overlay> */}
+
       {/* Gallery or Camera selection bottom sheet */}
       <Overlay
         isVisible={openUploadOptionsOverlay}
@@ -365,6 +384,7 @@ const HomeScreen = () => {
           <Text style={styles.homeBottomSheetText}>Open Gallery</Text>
         </TouchableOpacity>
       </Overlay>
+
       {/* Mint & Image Overlay */}
       <Overlay
         isVisible={openMintOverlay}

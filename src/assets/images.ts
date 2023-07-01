@@ -1,12 +1,12 @@
 const ImageLinks = {
-  logo: require('./logo.png'),
-  logout: require('./logout.png'),
-  sun: require('./sun.png'),
-  moon: require('./moon.png'),
-  addImage: require('./addImage.png'),
-  generate: require('./generate.png'),
-  camera: require('./camera.png'),
-  gallery: require('./gallery.png'),
+  logo: require('./images/logo.png'),
+  logout: require('./images/logout.png'),
+  sun: require('./images/sun.png'),
+  moon: require('./images/moon.png'),
+  addImage: require('./images/addImage.png'),
+  generate: require('./images/generate.png'),
+  camera: require('./images/camera.png'),
+  gallery: require('./images/gallery.png'),
 };
 
 export default ImageLinks;

@@ -43,6 +43,13 @@ const styles = StyleSheet.create({
     width: 25,
     tintColor: COLORCODE.PRIMARY,
   },
+  homeTextInput: {
+    margin: 20,
+    marginTop: 0,
+    fontSize: 15,
+    height: 100,
+    maxHeight: 150,
+  },
   homeLogo: {
     height: 120,
     width: 120,
