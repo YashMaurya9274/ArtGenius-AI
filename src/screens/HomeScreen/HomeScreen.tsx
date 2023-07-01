@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigator/RootNavigator';
@@ -15,10 +15,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { Overlay } from '@rneui/themed';
 import storeTheme from '../../lib/storeTheme';
 import retrieveTheme from '../../lib/retrieveTheme';
-
+import { Configuration, OpenAIApi } from 'openai';
 // @ts-ignore
 import * as fcl from '@onflow/fcl/dist/fcl-react-native';
 import CustomSnackBar from '../../components/CustomSnackBar/CustomSnackBar';
+// @ts-ignore
+import AnimatedLoader from 'react-native-animated-loader';
 
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -31,6 +33,16 @@ const HomeScreen = () => {
   const [theme, setTheme] = useState<string>('');
   const [themeChanged, setThemeChanged] = useState<boolean>(false);
   const isFocused = useIsFocused();
+  const [imageDecsription, setImageDescription] = useState('');
+  const [creationLoading, setCreationLoading] = useState<boolean>(false);
+  const [imageLoading, setImageLoading] = useState<boolean>(false);
+
+  const configuration = new Configuration({
+    // apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    apiKey: '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',
+  });
+
+  const openai = new OpenAIApi(configuration);
 
   const fetchTheme = async () => {
     const themeFromStorage = await retrieveTheme();
@@ -136,6 +148,35 @@ const HomeScreen = () => {
     setShowSnackbar(true);
   };
 
+  const generateImage = async () => {
+    if (!imageDecsription) return;
+    setImage('');
+    console.log('Creating Image');
+    setCreationLoading(true);
+    try {
+      const response = await openai.createImage({
+        prompt: imageDecsription,
+        n: 1,
+        size: '512x512',
+      });
+      console.log(response);
+      const image_url = response.data.data[0].url;
+      console.log(image_url);
+      if (image_url) {
+        setImage(image_url);
+        setOpenMintOverlay(true);
+      }
+      // setDisabled(false);
+      // setForged(null);
+      // return image_url;
+      setCreationLoading(false);
+    } catch (e) {
+      console.log('ERROR IMAGE GENERATION', e);
+    }
+  };
+
+  console.log('IMAGE FROM OPENAI', image);
+
   return (
     <SafeAreaView
       style={[
@@ -178,6 +219,7 @@ const HomeScreen = () => {
         <TextInput
           label="Decscription"
           multiline
+          onChangeText={(text) => setImageDescription(text)}
           mode="outlined"
           numberOfLines={5}
           contentStyle={{
@@ -205,6 +247,7 @@ const HomeScreen = () => {
             imageSource={ImageLinks.generate}
             imageStyle={{ height: 25, width: 25 }}
             title="Generate Image"
+            onPress={generateImage}
             buttonStyle={styles.homeGenerateUploadButton}
             gradientStyle={styles.gradient}
             titleStyle={styles.homeUploadButtonText}
@@ -327,6 +370,7 @@ const HomeScreen = () => {
         isVisible={openMintOverlay}
         overlayStyle={{
           backgroundColor: 'transparent',
+          zIndex: 10,
         }}
         animationType="slide"
         onBackdropPress={() => {
@@ -347,9 +391,62 @@ const HomeScreen = () => {
               source={{
                 uri: image,
               }}
-              style={styles.mintOverlayImage}
+              onLoadStart={() => setImageLoading(true)}
+              onLoadEnd={() => setImageLoading(false)}
+              style={[
+                styles.mintOverlayImage,
+                {
+                  position: 'relative',
+                },
+              ]}
             />
           )}
+
+          {imageLoading && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 100,
+                left: 0,
+                right: 0,
+                gap: 18,
+              }}
+            >
+              <Text
+                style={{
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  fontSize: 20,
+                  color: COLORCODE.PRIMARY,
+                  fontWeight: '500',
+                }}
+              >
+                Loading Image...
+              </Text>
+              <ActivityIndicator color={COLORCODE.PRIMARY} size="large" />
+            </View>
+          )}
+
+          {/* <AnimatedLoader
+            visible={imageLoading}
+            // overlayColor="rgba(255,255,255,0.75)"
+            source={require('../../assets/loader.json')}
+            animationStyle={{
+              height: 200,
+              width: 200,
+            }}
+            speed={1}
+          >
+            <Text
+              style={{
+                fontSize: 24,
+                color: COLORCODE.PRIMARY,
+                fontWeight: '500',
+              }}
+            >
+              Loading Image...
+            </Text>
+          </AnimatedLoader> */}
 
           <Button
             mode="contained"
@@ -375,6 +472,24 @@ const HomeScreen = () => {
         onPressAction={() => setShowSnackbar(false)}
         text="NFT Minted succesfully."
       />
+
+      {/* Loader */}
+      <AnimatedLoader
+        visible={creationLoading}
+        // overlayColor="rgba(255,255,255,0.75)"
+        source={require('../../assets/loader.json')}
+        animationStyle={{
+          height: 200,
+          width: 200,
+          zIndex: 20,
+        }}
+        animationType="slide"
+        speed={1}
+      >
+        <Text style={{ fontSize: 24, color: COLORCODE.PRIMARY, fontWeight: '500' }}>
+          Creating Image...
+        </Text>
+      </AnimatedLoader>
     </SafeAreaView>
   );
 };
