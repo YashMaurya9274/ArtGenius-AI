@@ -30,6 +30,7 @@ import { getTotalSupply } from '../../../flow/cadence/scripts/getTotalSupply';
 
 // @ts-ignore
 import * as types from '@onflow/types';
+import Loader from '../../components/Loader/Loader';
 
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -46,6 +47,8 @@ const HomeScreen = () => {
   const [creationLoading, setCreationLoading] = useState<boolean>(false);
   const [imageLoading, setImageLoading] = useState<boolean>(false);
   const user = useCurrentUser();
+  const [mintStatus, setMintStatus] = useState<string>('');
+  const [showMintLoader, setShowMintLoader] = useState<boolean>(false);
 
   const configuration = new Configuration({
     apiKey: OPENAI_API_KEY,
@@ -152,11 +155,6 @@ const HomeScreen = () => {
     }
   };
 
-  // const mint = () => {
-  //   setOpenMintOverlay(false);
-  //   setShowSnackbar(true);
-  // };
-
   const generateImage = async () => {
     if (!imageDecsription) return;
     setImage('');
@@ -181,6 +179,7 @@ const HomeScreen = () => {
   };
 
   const mint = async (metadata?: any) => {
+    setMintStatus('Opening your wallets');
     let _totalSupply;
     try {
       _totalSupply = await fcl.query({
@@ -188,6 +187,8 @@ const HomeScreen = () => {
       });
     } catch (err) {
       console.log(err);
+      setShowMintLoader(false);
+      setMintStatus('');
     }
 
     const _id = parseInt(_totalSupply) + 1;
@@ -197,6 +198,8 @@ const HomeScreen = () => {
     console.log('user', user);
     console.log('user address', user?.address);
     try {
+      setOpenMintOverlay(false);
+      setShowMintLoader(true);
       const transactionId = await fcl.mutate({
         cadence: `${mintNFT}`,
         args: (arg: any, t: any) => [
@@ -209,34 +212,37 @@ const HomeScreen = () => {
         payer: fcl.currentUser,
         limit: 99,
       });
-      console.log('Minting NFT now with transaction ID', transactionId);
+      setMintStatus(`Minting NFT now with transaction ID ${transactionId}`);
+      // console.log('Minting NFT now with transaction ID', transactionId);
       const transaction = await fcl.tx(transactionId).onceSealed();
-      console.log('minting nft with transacn id done!');
-      console.log(
-        'Testnet explorer link:',
-        `https://testnet.flowscan.org/transaction/${transactionId}`
-      );
-      console.log(transaction);
-      alert('NFT minted successfully!');
-      setOpenMintOverlay(false);
+      setMintStatus('Minting NFT with transaction ID completed!');
+      // console.log('minting nft with transacn id done!');
+      // console.log(
+      //   'Testnet explorer link:',
+      //   `https://testnet.flowscan.org/transaction/${transactionId}`
+      // );
+      setShowMintLoader(false);
+      setMintStatus('');
       setShowSnackbar(true);
     } catch (error) {
       console.log(error);
+      setShowMintLoader(false);
+      setMintStatus('');
       alert('Click Login to Connect Wallet');
       // alert("Error minting NFT, please check the console for error details!");
     }
   };
 
-  const uploadImageToThirdWeb = async (e: any) => {
-    console.log(e);
-    // setLoading(2);
-    // const storage = new ThirdwebStorage();
-    // const url = await storage.upload(e);
-    // console.log(url);
-    // setLoading(0);
-    // setUrl(url)
-    // return url;
-  };
+  // const uploadImageToThirdWeb = async (e: any) => {
+  //   console.log(e);
+  //   // setLoading(2);
+  //   // const storage = new ThirdwebStorage();
+  //   // const url = await storage.upload(e);
+  //   // console.log(url);
+  //   // setLoading(0);
+  //   // setUrl(url)
+  //   // return url;
+  // };
 
   const handleSendTransaction = async () => {
     if (user?.address) {
@@ -541,6 +547,8 @@ const HomeScreen = () => {
         onPressAction={() => setShowSnackbar(false)}
         text="NFT Minted succesfully."
       />
+
+      <Loader visible={showMintLoader} message={mintStatus} />
 
       {/* Loader */}
       <AnimatedLoader
