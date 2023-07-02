@@ -26,8 +26,10 @@ import AnimatedLoader from 'react-native-animated-loader';
 import { OPENAI_API_KEY } from '@env';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { mintNFT } from '../../../flow/cadence/transactions/mint_nfts';
-import getTotalSupply from '../../../flow/cadence/scripts/getTotalSupply';
-import { ThirdwebStorage } from '@thirdweb-dev/storage';
+import { getTotalSupply } from '../../../flow/cadence/scripts/getTotalSupply';
+
+// @ts-ignore
+import * as types from '@onflow/types';
 
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -150,10 +152,10 @@ const HomeScreen = () => {
     }
   };
 
-  const mint = () => {
-    setOpenMintOverlay(false);
-    setShowSnackbar(true);
-  };
+  // const mint = () => {
+  //   setOpenMintOverlay(false);
+  //   setShowSnackbar(true);
+  // };
 
   const generateImage = async () => {
     if (!imageDecsription) return;
@@ -178,23 +180,70 @@ const HomeScreen = () => {
     }
   };
 
-  //   const uploadImageToThirdWeb = () => {
-  //     console.log(e);
-  //       setLoading(2);
-  //       const storage = new ThirdwebStorage();
-  //       const url = await storage.upload(e);
-  //       console.log(url);
-  //       setLoading(0);
-  //       setUrl(url)
-  //       return url;
-  //   }
+  const mint = async (metadata?: any) => {
+    let _totalSupply;
+    try {
+      _totalSupply = await fcl.query({
+        cadence: `${getTotalSupply}`,
+      });
+    } catch (err) {
+      console.log(err);
+    }
 
-  //   const handleSendTransaction = async () => {
-  //     if (user?.address) {
-  //       const metadata = await uploading(image);
-  //       mint(metadata)
-  //     }
-  // };
+    const _id = parseInt(_totalSupply) + 1;
+
+    console.log('_totalSupply', _totalSupply);
+
+    console.log('user', user);
+    console.log('user address', user?.address);
+    try {
+      const transactionId = await fcl.mutate({
+        cadence: `${mintNFT}`,
+        args: (arg: any, t: any) => [
+          arg('0x' + user?.address, types.Address), //address to which the NFT should be minted
+          arg('ArtGeniusAI # ' + _id.toString(), types.String), // Name
+          arg('ArtGeniusAI NFTs on the Flow blockchain', types.String), // Description
+          arg(metadata, types.String),
+        ],
+        proposer: fcl.currentUser,
+        payer: fcl.currentUser,
+        limit: 99,
+      });
+      console.log('Minting NFT now with transaction ID', transactionId);
+      const transaction = await fcl.tx(transactionId).onceSealed();
+      console.log('minting nft with transacn id done!');
+      console.log(
+        'Testnet explorer link:',
+        `https://testnet.flowscan.org/transaction/${transactionId}`
+      );
+      console.log(transaction);
+      alert('NFT minted successfully!');
+      setOpenMintOverlay(false);
+      setShowSnackbar(true);
+    } catch (error) {
+      console.log(error);
+      alert('Click Login to Connect Wallet');
+      // alert("Error minting NFT, please check the console for error details!");
+    }
+  };
+
+  const uploadImageToThirdWeb = async (e: any) => {
+    console.log(e);
+    // setLoading(2);
+    // const storage = new ThirdwebStorage();
+    // const url = await storage.upload(e);
+    // console.log(url);
+    // setLoading(0);
+    // setUrl(url)
+    // return url;
+  };
+
+  const handleSendTransaction = async () => {
+    if (user?.address) {
+      // const metadata = await uploadImageToThirdWeb(image);
+      mint(image);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -472,7 +521,7 @@ const HomeScreen = () => {
             mode="contained"
             buttonColor={COLORCODE.PRIMARY}
             textColor="whitesmoke"
-            onPress={mint}
+            onPress={handleSendTransaction}
           >
             <Text style={{ fontSize: 18, marginHorizontal: 10 }}>Mint</Text>
           </Button>
