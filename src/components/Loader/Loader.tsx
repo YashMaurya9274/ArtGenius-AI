@@ -1,8 +1,9 @@
-import { StyleProp, Text, TextStyle } from 'react-native';
+import { StyleProp, Text, TextStyle, View } from 'react-native';
 import React from 'react';
 // @ts-ignore
 import AnimatedLoader from 'react-native-animated-loader';
 import styles from './Loader.styles';
+import { DARK_COLORS } from '../../enums';
 
 type Props = {
   visible: boolean;
@@ -11,6 +12,7 @@ type Props = {
   message?: string;
   textStyle?: StyleProp<TextStyle>;
   animationType?: string;
+  theme: string;
 };
 
 const Loader = ({
@@ -20,6 +22,7 @@ const Loader = ({
   animationType = 'slide' || 'fade',
   message,
   speed = 1,
+  theme,
 }: Props) => {
   return (
     <AnimatedLoader
@@ -30,7 +33,17 @@ const Loader = ({
       animationType={!animationType ? 'slide' : animationType}
       speed={speed}
     >
-      <Text style={[styles.loaderTextStyle, textStyle]}>{message}</Text>
+      <View
+        style={{
+          backgroundColor: theme === 'dark' ? DARK_COLORS.SNACKBAR_BG : 'white',
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 20,
+          maxWidth: '85%',
+        }}
+      >
+        <Text style={[styles.loaderTextStyle, textStyle]}>{message}</Text>
+      </View>
     </AnimatedLoader>
   );
 };

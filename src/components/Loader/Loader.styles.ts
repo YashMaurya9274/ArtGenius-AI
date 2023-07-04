@@ -8,9 +8,10 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   loaderTextStyle: {
-    fontSize: 24,
+    fontSize: 18,
     color: COLORCODE.PRIMARY,
     fontWeight: '500',
+    textAlign: 'center',
   },
 });
 

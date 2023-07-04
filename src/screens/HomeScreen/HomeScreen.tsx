@@ -19,8 +19,6 @@ import { Configuration, OpenAIApi } from 'openai';
 // @ts-ignore
 import * as fcl from '@onflow/fcl/dist/fcl-react-native';
 import CustomSnackBar from '../../components/CustomSnackBar/CustomSnackBar';
-// @ts-ignore
-import AnimatedLoader from 'react-native-animated-loader';
 
 // @ts-ignore
 import { OPENAI_API_KEY } from '@env';
@@ -38,6 +36,7 @@ const HomeScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const [openMintOverlay, setOpenMintOverlay] = useState<boolean>(false);
   const [openUploadOptionsOverlay, setOpenUploadOptionsOverlay] = useState<boolean>(false);
+  const [name, setName] = useState('');
   const [image, setImage] = useState<string>('');
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
   const [theme, setTheme] = useState<string>('');
@@ -49,6 +48,7 @@ const HomeScreen = () => {
   const user = useCurrentUser();
   const [mintStatus, setMintStatus] = useState<string>('');
   const [showMintLoader, setShowMintLoader] = useState<boolean>(false);
+  const [showErrorBar, setShowErrorBar] = useState<boolean>(false);
 
   const configuration = new Configuration({
     apiKey: OPENAI_API_KEY,
@@ -179,24 +179,24 @@ const HomeScreen = () => {
   };
 
   const mint = async (metadata?: any) => {
-    setMintStatus('Opening your wallets');
+    setMintStatus('Opening your wallets...');
     let _totalSupply;
     try {
       _totalSupply = await fcl.query({
         cadence: `${getTotalSupply}`,
       });
     } catch (err) {
-      console.log(err);
+      console.log('ERROR FROM CLOSING WALLET', err);
       setShowMintLoader(false);
       setMintStatus('');
     }
 
     const _id = parseInt(_totalSupply) + 1;
 
-    console.log('_totalSupply', _totalSupply);
+    // console.log('_totalSupply', _totalSupply);
 
-    console.log('user', user);
-    console.log('user address', user?.address);
+    // console.log('user', user);
+    // console.log('user address', user?.address);
     try {
       setOpenMintOverlay(false);
       setShowMintLoader(true);
@@ -212,7 +212,9 @@ const HomeScreen = () => {
         payer: fcl.currentUser,
         limit: 99,
       });
-      setMintStatus(`Minting NFT now with transaction ID ${transactionId}`);
+      // setMintStatus(`Minting NFT now with transaction ID ${transactionId}`);
+      setMintStatus(`Minting NFT now with transaction ID...`);
+
       // console.log('Minting NFT now with transaction ID', transactionId);
       const transaction = await fcl.tx(transactionId).onceSealed();
       setMintStatus('Minting NFT with transaction ID completed!');
@@ -228,7 +230,7 @@ const HomeScreen = () => {
       console.log(error);
       setShowMintLoader(false);
       setMintStatus('');
-      alert('Click Login to Connect Wallet');
+      setShowErrorBar(true);
       // alert("Error minting NFT, please check the console for error details!");
     }
   };
@@ -245,6 +247,8 @@ const HomeScreen = () => {
   // };
 
   const handleSendTransaction = async () => {
+    if (!name) return;
+
     if (user?.address) {
       // const metadata = await uploadImageToThirdWeb(image);
       mint(image);
@@ -271,8 +275,10 @@ const HomeScreen = () => {
         <Text style={styles.homeDescribeHeader}>Describe the image you want!</Text>
 
         <TextInput
-          label="Name"
+          label="Name (Required)"
           placeholderTextColor="gray"
+          value={name}
+          onChangeText={(text) => setName(text)}
           mode="outlined"
           contentStyle={{
             color: theme === 'dark' ? DARK_COLORS.LOGIN_TEXT : LIGHT_COLORS.LOGIN_TEXT,
@@ -293,6 +299,7 @@ const HomeScreen = () => {
         <TextInput
           label="Decscription"
           multiline
+          value={imageDecsription}
           onChangeText={(text) => setImageDescription(text)}
           mode="outlined"
           numberOfLines={5}
@@ -367,45 +374,6 @@ const HomeScreen = () => {
       </ScrollView>
 
       {/* Gallery or Camera selection bottom sheet */}
-      {/* <Overlay
-        isVisible={openUploadOptionsOverlay}
-        onBackdropPress={() => setOpenUploadOptionsOverlay(false)}
-        animationType="slide"
-        overlayStyle={{
-          backgroundColor: 'white',
-          width: '100%',
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          marginTop: 'auto',
-          height: 150,
-          padding: 10,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-        }}>
-        <TouchableOpacity
-          onPress={() => uploadImage(true)}
-          style={{
-            backgroundColor: COLORCODE.PRIMARY,
-            padding: 25,
-            borderRadius: 100,
-          }}>
-          <Image source={ImageLinks.camera} style={{height: 40, width: 40}} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => uploadImage(false)}
-          style={{
-            backgroundColor: COLORCODE.PRIMARY,
-            padding: 25,
-            borderRadius: 100,
-          }}>
-          <Image source={ImageLinks.gallery} style={{height: 40, width: 40}} />
-        </TouchableOpacity>
-      </Overlay> */}
-
-      {/* Gallery or Camera selection bottom sheet */}
       <Overlay
         isVisible={openUploadOptionsOverlay}
         onBackdropPress={() => setOpenUploadOptionsOverlay(false)}
@@ -451,6 +419,7 @@ const HomeScreen = () => {
         onBackdropPress={() => {
           setImage('');
           setOpenMintOverlay(false);
+          setShowErrorBar(true);
         }}
       >
         <View
@@ -523,14 +492,35 @@ const HomeScreen = () => {
             </Text>
           </AnimatedLoader> */}
 
-          <Button
+          {/* <Button
             mode="contained"
             buttonColor={COLORCODE.PRIMARY}
             textColor="whitesmoke"
             onPress={handleSendTransaction}
           >
             <Text style={{ fontSize: 18, marginHorizontal: 10 }}>Mint</Text>
-          </Button>
+          </Button> */}
+
+          <GradientButton
+            colors={['#BE3EFA', '#4C3EFA', '#3E6EFA']}
+            onPress={handleSendTransaction}
+            title="Mint NFT"
+            buttonStyle={[
+              {
+                marginHorizontal: 10,
+                borderRadius: 10,
+                width: '85%',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+              },
+            ]}
+            gradientStyle={{
+              borderRadius: 20,
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+            }}
+            titleStyle={{ fontSize: 18, textAlign: 'center', color: 'whitesmoke' }}
+          />
         </View>
       </Overlay>
 
@@ -548,25 +538,23 @@ const HomeScreen = () => {
         text="NFT Minted succesfully."
       />
 
-      <Loader visible={showMintLoader} message={mintStatus} />
-
-      {/* Loader */}
-      <AnimatedLoader
-        visible={creationLoading}
-        // overlayColor="rgba(255,255,255,0.75)"
-        source={require('../../assets/loader.json')}
-        animationStyle={{
-          height: 200,
-          width: 200,
-          zIndex: 20,
+      <CustomSnackBar
+        showSnackBar={showErrorBar}
+        customStyle={{
+          backgroundColor: COLORCODE.ERROR,
         }}
-        animationType="slide"
-        speed={1}
-      >
-        <Text style={{ fontSize: 24, color: COLORCODE.PRIMARY, fontWeight: '500' }}>
-          Creating Image...
-        </Text>
-      </AnimatedLoader>
+        textStyle={{
+          color: 'white',
+        }}
+        actionTextColor="white"
+        onDismiss={() => setShowErrorBar(false)}
+        onPressAction={() => setShowErrorBar(false)}
+        text="Minting Cancelled."
+      />
+
+      <Loader visible={showMintLoader} message={mintStatus} theme={theme} />
+
+      <Loader visible={creationLoading} message="Generating Image..." theme={theme} />
     </SafeAreaView>
   );
 };

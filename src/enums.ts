@@ -1,5 +1,6 @@
 export enum COLORCODE {
   PRIMARY = '#579CFF',
+  ERROR = '#FA3E3E',
 }
 
 export enum DARK_COLORS {
