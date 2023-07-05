@@ -1,13 +1,12 @@
-import { View, Text, StatusBar, useColorScheme, Image, SafeAreaView } from 'react-native';
+import { View, Text, StatusBar, Image, SafeAreaView } from 'react-native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import styles from './LoginScreen.styles';
 import { RootStackParamList } from '../../navigator/RootNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { COLORCODE, DARK_COLORS, LIGHT_COLORS } from '../../enums';
+import { DARK_COLORS, LIGHT_COLORS } from '../../enums';
 import ImageLinks from '../../assets/images';
 import GradientText from '../../components/GradientText/GradientText';
-import { Button } from 'react-native-paper';
 import '../../../flow/config';
 // @ts-ignore
 import * as fcl from '@onflow/fcl/dist/fcl-react-native';
@@ -15,7 +14,9 @@ import WalletServiceCard from '../../components/WalletServiceCard/WalletServiceC
 import WalletDiscoveryWrapper from '../../components/WalletDiscoveryWrapper/WalletDiscoveryWrapper';
 import retrieveTheme from '../../lib/retrieveTheme';
 import LoadingIndicator from '../../components/LoadingIndicator/LoadingIndicator';
-import CustomSnackBar from '../../components/CustomSnackBar/CustomSnackBar';
+import Footer from '../../components/Footer/Footer';
+import GradientHeader from '../../components/GradientHeader/GradientHeader';
+import AppLogo from '../../components/AppLogo/AppLogo';
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -55,10 +56,10 @@ const LoginScreen = () => {
         backgroundColor={theme === 'dark' ? DARK_COLORS.BACKGROUND : LIGHT_COLORS.BACKGROUND}
       />
 
-      <GradientText style={styles.gradientHeader}>ArtGenius AI</GradientText>
+      <GradientHeader />
 
       <View style={styles.loginContainer}>
-        <Image source={ImageLinks.logo} style={styles.logo} />
+        <AppLogo />
 
         <Text style={styles.loginContainerText}>
           {isLoading ? 'Loading Wallets...' : 'Connect Wallet'}
@@ -73,7 +74,7 @@ const LoginScreen = () => {
         />
       </View>
 
-      <Text style={styles.footer}>Powered by ArtGenius AI</Text>
+      <Footer />
     </SafeAreaView>
   );
 };
