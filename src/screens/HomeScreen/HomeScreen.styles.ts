@@ -23,7 +23,6 @@ const styles = StyleSheet.create({
   homeButtonContainer: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 13,
   },
   homeDescribeHeader: {
     marginTop: 40,
@@ -37,6 +36,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 13,
   },
   homeButtonIcon: {
     height: 25,
@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 20,
   },
   partitionLine: {
     height: 1,
@@ -89,6 +90,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
     borderRadius: 5,
+    marginBottom: 20,
   },
   homeGalleryBottomSheet: {
     width: '100%',
@@ -106,6 +108,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     marginLeft: 'auto',
     marginRight: 'auto',
+    marginBottom: 10,
   },
   homeBottomSheetOption: {
     display: 'flex',
@@ -113,11 +116,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginLeft: 10,
+    marginTop: 12,
   },
   homeBottomSheetIcon: {
     backgroundColor: COLORCODE.PRIMARY,
     padding: 8,
     borderRadius: 100,
+    marginRight: 10,
   },
   homeBottomSheetImage: {
     height: 20,

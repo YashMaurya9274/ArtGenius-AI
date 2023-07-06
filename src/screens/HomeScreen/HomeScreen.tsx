@@ -29,7 +29,6 @@ import { getTotalSupply } from '../../../flow/cadence/scripts/getTotalSupply';
 // @ts-ignore
 import * as types from '@onflow/types';
 import Loader from '../../components/Loader/Loader';
-// import lighthouse from '@lighthouse-web3/sdk';
 import lighthouse from '@lighthouse-web3/sdk';
 
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -51,6 +50,7 @@ const HomeScreen = () => {
   const [mintStatus, setMintStatus] = useState<string>('');
   const [showMintLoader, setShowMintLoader] = useState<boolean>(false);
   const [showErrorBar, setShowErrorBar] = useState<boolean>(false);
+  const [showNameBar, setShowNameBar] = useState<boolean>(false);
 
   const configuration = new Configuration({
     apiKey: OPENAI_API_KEY,
@@ -118,6 +118,7 @@ const HomeScreen = () => {
               {
                 backgroundColor:
                   theme === 'dark' ? DARK_COLORS.HOME_BUTTON : LIGHT_COLORS.HOME_BUTTON,
+                marginRight: 0,
               },
             ]}
           >
@@ -157,7 +158,19 @@ const HomeScreen = () => {
     }
   };
 
+  const handleUploadImage = () => {
+    if (!name) {
+      setShowNameBar(true);
+      return;
+    }
+    setOpenUploadOptionsOverlay(true);
+  };
+
   const generateImage = async () => {
+    if (!name) {
+      setShowNameBar(true);
+      return;
+    }
     if (!imageDecsription) return;
     setImage('');
     setCreationLoading(true);
@@ -219,7 +232,7 @@ const HomeScreen = () => {
 
       // console.log('Minting NFT now with transaction ID', transactionId);
       const transaction = await fcl.tx(transactionId).onceSealed();
-      console.log('transaction', JSON.stringify(transaction));
+      // console.log('transaction', JSON.stringify(transaction));
       setMintStatus('Minting NFT with transaction ID completed!');
       // console.log('minting nft with transacn id done!');
       // console.log(
@@ -250,8 +263,14 @@ const HomeScreen = () => {
   // };
 
   const handleSendTransaction = async () => {
-    // if (!name) return;
+    if (!name) {
+      setShowNameBar(true);
+      return;
+    }
     if (user?.address) {
+      setOpenMintOverlay(false);
+      setShowMintLoader(true);
+      setMintStatus('Storing image to a Decentralized Storage');
       const uploadResponse = await lighthouse.upload(image, LIGHTHOUSE_API_KEY); // path, apiKey
       const metadata = `ipfs:${uploadResponse.data.Hash}`;
       console.log('metadata', metadata);
@@ -324,11 +343,11 @@ const HomeScreen = () => {
           textAlignVertical="center"
         />
 
-        <View style={{ marginTop: 30, gap: 15 }}>
+        <View style={{ marginTop: 30 }}>
           <GradientButton
             colors={['#2974FA', COLORCODE.PRIMARY, '#2974FA']}
             imageSource={ImageLinks.generate}
-            imageStyle={{ height: 25, width: 25 }}
+            imageStyle={{ height: 25, width: 25, marginRight: 10 }}
             title="Generate Image"
             onPress={generateImage}
             buttonStyle={styles.homeGenerateUploadButton}
@@ -362,8 +381,8 @@ const HomeScreen = () => {
             // colors={['#FF2B2B', '#FF5757', '#FF2B2B']}
             colors={['#782BFF', '#7B57FF', '#782BFF']}
             imageSource={ImageLinks.addImage}
-            imageStyle={{ height: 25, width: 25 }}
-            onPress={() => setOpenUploadOptionsOverlay(true)}
+            imageStyle={{ height: 25, width: 25, marginRight: 10 }}
+            onPress={handleUploadImage}
             title="Upload Image"
             buttonStyle={[
               styles.homeGenerateUploadButton,
@@ -457,7 +476,6 @@ const HomeScreen = () => {
                 top: 100,
                 left: 0,
                 right: 0,
-                gap: 18,
               }}
             >
               <Text
@@ -467,6 +485,7 @@ const HomeScreen = () => {
                   fontSize: 20,
                   color: COLORCODE.PRIMARY,
                   fontWeight: '500',
+                  marginBottom: 18,
                 }}
               >
                 Loading Image...
@@ -516,6 +535,7 @@ const HomeScreen = () => {
                 width: '85%',
                 marginLeft: 'auto',
                 marginRight: 'auto',
+                marginTop: 10,
               },
             ]}
             gradientStyle={{
@@ -554,6 +574,20 @@ const HomeScreen = () => {
         onDismiss={() => setShowErrorBar(false)}
         onPressAction={() => setShowErrorBar(false)}
         text="Minting Cancelled."
+      />
+
+      <CustomSnackBar
+        showSnackBar={showNameBar}
+        customStyle={{
+          backgroundColor: COLORCODE.PRIMARY,
+        }}
+        textStyle={{
+          color: 'white',
+        }}
+        actionTextColor="white"
+        onDismiss={() => setShowNameBar(false)}
+        onPressAction={() => setShowNameBar(false)}
+        text="Please add a NFT name."
       />
 
       <Loader visible={showMintLoader} message={mintStatus} theme={theme} />
