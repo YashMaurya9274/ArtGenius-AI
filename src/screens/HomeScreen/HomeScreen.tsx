@@ -10,7 +10,7 @@ import GradientText from '../../components/GradientText/GradientText';
 import ImageLinks from '../../assets/images';
 import GradientButton from '../../components/GradientButton/GradientButton';
 import { ScrollView } from 'react-native';
-import { Button, TextInput } from 'react-native-paper';
+import { TextInput } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { Overlay } from '@rneui/themed';
 import storeTheme from '../../lib/storeTheme';
@@ -21,7 +21,7 @@ import * as fcl from '@onflow/fcl/dist/fcl-react-native';
 import CustomSnackBar from '../../components/CustomSnackBar/CustomSnackBar';
 
 // @ts-ignore
-import { OPENAI_API_KEY } from '@env';
+import { OPENAI_API_KEY, LIGHTHOUSE_API_KEY } from '@env';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { mintNFT } from '../../../flow/cadence/transactions/mint_nfts';
 import { getTotalSupply } from '../../../flow/cadence/scripts/getTotalSupply';
@@ -29,6 +29,8 @@ import { getTotalSupply } from '../../../flow/cadence/scripts/getTotalSupply';
 // @ts-ignore
 import * as types from '@onflow/types';
 import Loader from '../../components/Loader/Loader';
+// import lighthouse from '@lighthouse-web3/sdk';
+import lighthouse from '@lighthouse-web3/sdk';
 
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -217,6 +219,7 @@ const HomeScreen = () => {
 
       // console.log('Minting NFT now with transaction ID', transactionId);
       const transaction = await fcl.tx(transactionId).onceSealed();
+      console.log('transaction', JSON.stringify(transaction));
       setMintStatus('Minting NFT with transaction ID completed!');
       // console.log('minting nft with transacn id done!');
       // console.log(
@@ -247,11 +250,12 @@ const HomeScreen = () => {
   // };
 
   const handleSendTransaction = async () => {
-    if (!name) return;
-
+    // if (!name) return;
     if (user?.address) {
-      // const metadata = await uploadImageToThirdWeb(image);
-      mint(image);
+      const uploadResponse = await lighthouse.upload(image, LIGHTHOUSE_API_KEY); // path, apiKey
+      const metadata = `ipfs:${uploadResponse.data.Hash}`;
+      console.log('metadata', metadata);
+      mint(metadata);
     }
   };
 
