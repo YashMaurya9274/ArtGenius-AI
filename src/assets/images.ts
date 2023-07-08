@@ -7,6 +7,7 @@ const ImageLinks = {
   generate: require('./images/generate.png'),
   camera: require('./images/camera.png'),
   gallery: require('./images/gallery.png'),
+  clock: require('./images/clock.png'),
 };
 
 export default ImageLinks;

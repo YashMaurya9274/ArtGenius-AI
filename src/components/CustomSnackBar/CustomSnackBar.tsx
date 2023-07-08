@@ -27,6 +27,7 @@ const CustomSnackBar = ({
   return (
     <Snackbar
       visible={showSnackBar}
+      duration={2500}
       style={[
         {
           backgroundColor: COLORCODE.PRIMARY,

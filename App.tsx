@@ -3,16 +3,8 @@ import RootNavigator from './src/navigator/RootNavigator';
 import './flow/config';
 import 'react-native-url-polyfill/auto';
 import '@thirdweb-dev/react-native-compat';
-import { ThirdwebProvider } from '@thirdweb-dev/react-native';
-
-// const App = () => {
-//   return <RootNavigator />;
-// };
-
-// export default App;
-
 import { useCallback, useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
@@ -53,17 +45,13 @@ export default function App() {
     }
   }, [appIsReady]);
 
-  console.log(appIsReady);
-
   if (!appIsReady) {
     return null;
   }
 
   return (
-    // <ThirdwebProvider>
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <RootNavigator />
     </View>
-    // </ThirdwebProvider>
   );
 }

@@ -1,4 +1,12 @@
-import { View, Text, SafeAreaView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigator/RootNavigator';
@@ -30,6 +38,10 @@ import { getTotalSupply } from '../../../flow/cadence/scripts/getTotalSupply';
 import * as types from '@onflow/types';
 import Loader from '../../components/Loader/Loader';
 import lighthouse from '@lighthouse-web3/sdk';
+import BottomSheet from '../../components/BottomSheet/BottomSheet';
+import TransactionHistory from '../../components/TransactionHistory/TransactionHistory';
+import retrieveTransactions from '../../lib/retrieveTransactions';
+import storeTransactions from '../../lib/storeTransactions';
 
 export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -51,37 +63,15 @@ const HomeScreen = () => {
   const [showMintLoader, setShowMintLoader] = useState<boolean>(false);
   const [showErrorBar, setShowErrorBar] = useState<boolean>(false);
   const [showNameBar, setShowNameBar] = useState<boolean>(false);
+  const [showDescBar, setShowDescBar] = useState<boolean>(false);
+  const [showOldTransactions, setShowOldTransactions] = useState<boolean>(false);
+  const [oldTransactions, setOldTransactions] = useState<TransactionData[]>([]);
 
   const configuration = new Configuration({
     apiKey: OPENAI_API_KEY,
   });
 
   const openai = new OpenAIApi(configuration);
-
-  const fetchTheme = async () => {
-    const themeFromStorage = await retrieveTheme();
-    if (themeFromStorage) {
-      setTheme(themeFromStorage);
-    }
-  };
-
-  useEffect(() => {
-    if (isFocused || themeChanged) {
-      fetchTheme();
-      setThemeChanged(false);
-    }
-  }, [isFocused, themeChanged]);
-
-  const handleLogout = () => {
-    // navigation.navigate("Login")
-    fcl.unauthenticate();
-  };
-
-  const changeTheme = async () => {
-    await storeTheme(theme).then(() => {
-      setThemeChanged(true);
-    });
-  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -96,6 +86,18 @@ const HomeScreen = () => {
       headerTitle: '',
       headerRight: () => (
         <View style={styles.homeButtonContainer}>
+          <TouchableOpacity
+            onPress={() => setShowOldTransactions(true)}
+            style={[
+              styles.homeButton,
+              {
+                backgroundColor:
+                  theme === 'dark' ? DARK_COLORS.HOME_BUTTON : LIGHT_COLORS.HOME_BUTTON,
+              },
+            ]}
+          >
+            <Image source={ImageLinks.clock} style={styles.homeButtonIcon} />
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={changeTheme}
             style={[
@@ -128,6 +130,40 @@ const HomeScreen = () => {
       ),
     });
   }, [theme]);
+
+  const fetchTheme = async () => {
+    const themeFromStorage = await retrieveTheme();
+    if (themeFromStorage) {
+      setTheme(themeFromStorage);
+    }
+  };
+
+  useEffect(() => {
+    if (isFocused || themeChanged) {
+      fetchTheme();
+      setThemeChanged(false);
+    }
+  }, [isFocused, themeChanged]);
+
+  const handleLogout = () => {
+    // navigation.navigate("Login")
+    fcl.unauthenticate();
+  };
+
+  const changeTheme = async () => {
+    await storeTheme(theme).then(() => {
+      setThemeChanged(true);
+    });
+  };
+
+  const fetchOldTransactions = async () => {
+    const res = await retrieveTransactions();
+    setOldTransactions(res);
+  };
+
+  useEffect(() => {
+    fetchOldTransactions();
+  }, []);
 
   const uploadImage = async (takePicture?: boolean) => {
     const options: ImagePicker.ImagePickerOptions = {
@@ -171,7 +207,10 @@ const HomeScreen = () => {
       setShowNameBar(true);
       return;
     }
-    if (!imageDecsription) return;
+    if (!imageDecsription) {
+      setShowDescBar(true);
+      return;
+    }
     setImage('');
     setCreationLoading(true);
     try {
@@ -193,6 +232,16 @@ const HomeScreen = () => {
     }
   };
 
+  const storeOldTransactions = () => {
+    if (oldTransactions.length > 0) {
+      storeTransactions(oldTransactions);
+    }
+  };
+
+  useEffect(() => {
+    storeOldTransactions();
+  }, [oldTransactions]);
+
   const mint = async (metadata?: any) => {
     setMintStatus('Opening your wallets...');
     let _totalSupply;
@@ -208,10 +257,6 @@ const HomeScreen = () => {
 
     const _id = parseInt(_totalSupply) + 1;
 
-    // console.log('_totalSupply', _totalSupply);
-
-    // console.log('user', user);
-    // console.log('user address', user?.address);
     try {
       setOpenMintOverlay(false);
       setShowMintLoader(true);
@@ -219,7 +264,7 @@ const HomeScreen = () => {
         cadence: `${mintNFT}`,
         args: (arg: any, t: any) => [
           arg('0x' + user?.address, types.Address), //address to which the NFT should be minted
-          arg('ArtGeniusAI # ' + _id.toString(), types.String), // Name
+          arg(`ArtGeniusAI #${name}` + _id.toString(), types.String), // Name
           arg('ArtGeniusAI NFTs on the Flow blockchain', types.String), // Description
           arg(metadata, types.String),
         ],
@@ -239,6 +284,19 @@ const HomeScreen = () => {
       //   'Testnet explorer link:',
       //   `https://testnet.flowscan.org/transaction/${transactionId}`
       // );
+      console.log('TRANSACTION ID', transactionId);
+      setOldTransactions([
+        ...oldTransactions,
+        {
+          name: name,
+          transactionId: transactionId,
+          date: new Date(),
+        },
+      ]);
+      // Linking.openURL(`https://testnet.flowscan.org/transaction/${transactionId}`);
+      setName('');
+      setImageDescription('');
+      setImage('');
       setShowMintLoader(false);
       setMintStatus('');
       setShowSnackbar(true);
@@ -251,16 +309,7 @@ const HomeScreen = () => {
     }
   };
 
-  // const uploadImageToThirdWeb = async (e: any) => {
-  //   console.log(e);
-  //   // setLoading(2);
-  //   // const storage = new ThirdwebStorage();
-  //   // const url = await storage.upload(e);
-  //   // console.log(url);
-  //   // setLoading(0);
-  //   // setUrl(url)
-  //   // return url;
-  // };
+  console.log('OLD TRANSACTIONS', oldTransactions);
 
   const handleSendTransaction = async () => {
     if (!name) {
@@ -397,25 +446,11 @@ const HomeScreen = () => {
       </ScrollView>
 
       {/* Gallery or Camera selection bottom sheet */}
-      <Overlay
+      <BottomSheet
         isVisible={openUploadOptionsOverlay}
-        onBackdropPress={() => setOpenUploadOptionsOverlay(false)}
-        animationType="slide"
-        overlayStyle={[
-          styles.homeGalleryBottomSheet,
-          {
-            backgroundColor: theme === 'dark' ? DARK_COLORS.MODAL_BG : LIGHT_COLORS.MODAL_BG,
-          },
-        ]}
+        onBackDropPress={() => setOpenUploadOptionsOverlay(false)}
+        theme={theme}
       >
-        <View
-          style={[
-            styles.homeBottomSheetTopBar,
-            {
-              backgroundColor: theme === 'dark' ? 'gray' : 'lightgray',
-            },
-          ]}
-        />
         <TouchableOpacity onPress={() => uploadImage(true)} style={styles.homeBottomSheetOption}>
           <View style={styles.homeBottomSheetIcon}>
             <Image source={ImageLinks.camera} style={styles.homeBottomSheetImage} />
@@ -429,7 +464,18 @@ const HomeScreen = () => {
           </View>
           <Text style={styles.homeBottomSheetText}>Open Gallery</Text>
         </TouchableOpacity>
-      </Overlay>
+      </BottomSheet>
+
+      <BottomSheet
+        isVisible={showOldTransactions}
+        onBackDropPress={() => setShowOldTransactions(false)}
+        theme={theme}
+        overlayStyle={{
+          height: oldTransactions.length === 0 ? 180 : 450,
+        }}
+      >
+        <TransactionHistory theme={theme} transactions={oldTransactions} />
+      </BottomSheet>
 
       {/* Mint & Image Overlay */}
       <Overlay
@@ -515,15 +561,6 @@ const HomeScreen = () => {
             </Text>
           </AnimatedLoader> */}
 
-          {/* <Button
-            mode="contained"
-            buttonColor={COLORCODE.PRIMARY}
-            textColor="whitesmoke"
-            onPress={handleSendTransaction}
-          >
-            <Text style={{ fontSize: 18, marginHorizontal: 10 }}>Mint</Text>
-          </Button> */}
-
           <GradientButton
             colors={['#BE3EFA', '#4C3EFA', '#3E6EFA']}
             onPress={handleSendTransaction}
@@ -588,6 +625,20 @@ const HomeScreen = () => {
         onDismiss={() => setShowNameBar(false)}
         onPressAction={() => setShowNameBar(false)}
         text="Please add a NFT name."
+      />
+
+      <CustomSnackBar
+        showSnackBar={showDescBar}
+        customStyle={{
+          backgroundColor: COLORCODE.PRIMARY,
+        }}
+        textStyle={{
+          color: 'white',
+        }}
+        actionTextColor="white"
+        onDismiss={() => setShowDescBar(false)}
+        onPressAction={() => setShowDescBar(false)}
+        text="Please add a description first."
       />
 
       <Loader visible={showMintLoader} message={mintStatus} theme={theme} />
