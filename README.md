@@ -1,5 +1,5 @@
 ## VERSIONS USED IN APP
 
-node - v18.14.2
-yarn - 1.22.19
-npm - 9.5.0
+1. node - v18.14.2
+2. yarn - 1.22.19
+3. npm - 9.5.0
