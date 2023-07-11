@@ -10,13 +10,23 @@ type Props = {
 
 const TransactionHistory = ({ theme, transactions }: Props) => {
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       {transactions?.length === 0 ? (
         <Text style={styles.noTransactionsText}>No Transactions Made!</Text>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 10, padding: 5 }}>
-          {transactions.map((transaction: TransactionData) => (
-            <TransactionCard transaction={transaction} theme={theme} />
+          <Text
+            style={{
+              textAlign: 'center',
+              marginVertical: 10,
+              fontSize: 14,
+              color: 'gray',
+            }}
+          >
+            Your Transactions History..!
+          </Text>
+          {transactions.map((transaction: TransactionData, index: number) => (
+            <TransactionCard key={index} transaction={transaction} theme={theme} />
           ))}
         </ScrollView>
       )}

@@ -8,6 +8,7 @@ const ImageLinks = {
   camera: require('./images/camera.png'),
   gallery: require('./images/gallery.png'),
   clock: require('./images/clock.png'),
+  flowLogo: require('./images/flow-logo.png'),
 };
 
 export default ImageLinks;

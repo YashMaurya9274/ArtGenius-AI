@@ -22,6 +22,7 @@ type Props = {
   imageStyle?: StyleProp<ImageStyle>;
   onPress?: () => void;
   activeOpacity?: number;
+  disabled?: boolean;
 };
 
 const GradientButton = ({
@@ -34,9 +35,15 @@ const GradientButton = ({
   imageStyle,
   onPress,
   activeOpacity = 0.5,
+  disabled = false,
 }: Props) => {
   return (
-    <TouchableOpacity activeOpacity={activeOpacity} style={buttonStyle} onPress={onPress}>
+    <TouchableOpacity
+      disabled={disabled}
+      activeOpacity={activeOpacity}
+      style={buttonStyle}
+      onPress={onPress}
+    >
       <LinearGradient colors={colors} style={gradientStyle}>
         {imageSource && <Image source={imageSource} style={imageStyle} />}
         <Text style={titleStyle}>{title}</Text>

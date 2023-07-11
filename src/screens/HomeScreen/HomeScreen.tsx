@@ -1,12 +1,4 @@
-import {
-  View,
-  Text,
-  SafeAreaView,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  Linking,
-} from 'react-native';
+import { View, Text, SafeAreaView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigator/RootNavigator';
@@ -146,7 +138,6 @@ const HomeScreen = () => {
   }, [isFocused, themeChanged]);
 
   const handleLogout = () => {
-    // navigation.navigate("Login")
     fcl.unauthenticate();
   };
 
@@ -168,7 +159,6 @@ const HomeScreen = () => {
   const uploadImage = async (takePicture?: boolean) => {
     const options: ImagePicker.ImagePickerOptions = {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      // allowsEditing: true, // Not working for IOS
       quality: 0.8,
       aspect: [3, 3],
     };
@@ -219,9 +209,7 @@ const HomeScreen = () => {
         n: 1,
         size: '512x512',
       });
-      console.log(response);
       const image_url = response.data.data[0].url;
-      console.log(image_url);
       if (image_url) {
         setImage(image_url);
         setOpenMintOverlay(true);
@@ -272,28 +260,18 @@ const HomeScreen = () => {
         payer: fcl.currentUser,
         limit: 99,
       });
-      // setMintStatus(`Minting NFT now with transaction ID ${transactionId}`);
       setMintStatus(`Minting NFT now with transaction ID...`);
 
-      // console.log('Minting NFT now with transaction ID', transactionId);
       const transaction = await fcl.tx(transactionId).onceSealed();
-      // console.log('transaction', JSON.stringify(transaction));
       setMintStatus('Minting NFT with transaction ID completed!');
-      // console.log('minting nft with transacn id done!');
-      // console.log(
-      //   'Testnet explorer link:',
-      //   `https://testnet.flowscan.org/transaction/${transactionId}`
-      // );
-      console.log('TRANSACTION ID', transactionId);
       setOldTransactions([
-        ...oldTransactions,
         {
           name: name,
           transactionId: transactionId,
           date: new Date(),
         },
+        ...oldTransactions,
       ]);
-      // Linking.openURL(`https://testnet.flowscan.org/transaction/${transactionId}`);
       setName('');
       setImageDescription('');
       setImage('');
@@ -305,11 +283,8 @@ const HomeScreen = () => {
       setShowMintLoader(false);
       setMintStatus('');
       setShowErrorBar(true);
-      // alert("Error minting NFT, please check the console for error details!");
     }
   };
-
-  console.log('OLD TRANSACTIONS', oldTransactions);
 
   const handleSendTransaction = async () => {
     if (!name) {
@@ -322,7 +297,6 @@ const HomeScreen = () => {
       setMintStatus('Storing image to a Decentralized Storage');
       const uploadResponse = await lighthouse.upload(image, LIGHTHOUSE_API_KEY); // path, apiKey
       const metadata = `ipfs:${uploadResponse.data.Hash}`;
-      console.log('metadata', metadata);
       mint(metadata);
     }
   };
@@ -540,28 +514,8 @@ const HomeScreen = () => {
             </View>
           )}
 
-          {/* <AnimatedLoader
-            visible={imageLoading}
-            // overlayColor="rgba(255,255,255,0.75)"
-            source={require('../../assets/loader.json')}
-            animationStyle={{
-              height: 200,
-              width: 200,
-            }}
-            speed={1}
-          >
-            <Text
-              style={{
-                fontSize: 24,
-                color: COLORCODE.PRIMARY,
-                fontWeight: '500',
-              }}
-            >
-              Loading Image...
-            </Text>
-          </AnimatedLoader> */}
-
           <GradientButton
+            disabled={imageLoading}
             colors={['#BE3EFA', '#4C3EFA', '#3E6EFA']}
             onPress={handleSendTransaction}
             title="Mint NFT"

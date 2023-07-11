@@ -5,7 +5,7 @@ import Footer from '../../components/Footer/Footer';
 import GradientHeader from '../../components/GradientHeader/GradientHeader';
 import AppLogo from '../../components/AppLogo/AppLogo';
 
-const AppSpashScreen = () => {
+const AppSplashScreen = () => {
   return (
     <SafeAreaView
       style={{
@@ -34,4 +34,4 @@ const AppSpashScreen = () => {
   );
 };
 
-export default AppSpashScreen;
+export default AppSplashScreen;
